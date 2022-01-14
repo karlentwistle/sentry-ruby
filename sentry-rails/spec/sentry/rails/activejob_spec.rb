@@ -27,6 +27,12 @@ class FailedWithExtraJob < FailedJob
   end
 end
 
+class JobWithArgument < ActiveJob::Base
+  def perform(*args, integer:, post:)
+    raise "foo"
+  end
+end
+
 class QueryPostJob < ActiveJob::Base
   self.logger = nil
 
@@ -74,6 +80,15 @@ RSpec.describe "ActiveJob integration" do
 
   it "returns #perform method's return value" do
     expect(NormalJob.perform_now).to eq("foo")
+  end
+
+  it "serializes ActiveRecord arguments by default" do
+    post = Post.create!
+
+    expect { JobWithArgument.perform_now("foo", { bar: Sentry }, integer: 1, post: post) }.to raise_error(RuntimeError)
+
+    event = transport.events.last.to_json_compatible
+    expect(event.dig("extra", "arguments")).to eq(["foo", { "bar" => "Sentry" }, { "integer" => 1, "post" => "gid://rails-test-app/Post/#{post.id}" }])
   end
 
   it "adds useful context to extra" do
