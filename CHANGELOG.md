@@ -1,3 +1,9 @@
+## Unreleased
+
+### Features
+
+- Support serializing ActiveRecord job arguments in global id form [#1688](https://github.com/getsentry/sentry-ruby/pull/1688)
+
 ## 5.0.0
 
 ### Breaking Change - Goodbye `faraday` 👋 
